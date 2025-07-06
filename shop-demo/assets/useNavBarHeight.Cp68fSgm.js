@@ -1,0 +1,1 @@
+import{r as t,p as a,q as s}from"./index-BLgQBReE.js";function n(){const n=t(0);return a((()=>{const t=s(),a=(t.statusBarHeight||0)*(750/(t.windowWidth||375));n.value=a+88})),{navBarHeight:n}}export{n as u};
