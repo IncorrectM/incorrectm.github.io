@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TikTube BCrypt 加密</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d7dce5;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --danger: #b91c1c;
+      --mono-bg: #f3f4f6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(760px, calc(100vw - 32px));
+      margin: 56px auto;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px;
+      box-shadow: 0 18px 45px rgba(31, 41, 55, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .hint {
+      margin: 0 0 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    textarea {
+      display: block;
+      width: 100%;
+      min-height: 128px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      color: var(--text);
+      font: 15px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 16px 0 22px;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 6px;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      min-height: 40px;
+      padding: 0 18px;
+    }
+
+    button:hover {
+      background: var(--primary-hover);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.7;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 14px;
+      min-height: 22px;
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    output {
+      display: block;
+      min-height: 76px;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--mono-bg);
+      padding: 12px;
+      font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    @media (max-width: 520px) {
+      main {
+        margin: 24px auto;
+        padding: 20px;
+      }
+
+      .actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>TikTube BCrypt 加密</h1>
+    <p class="hint">使用与 encode.py 相同的 BCrypt 算法：$2a$ 前缀、cost 10、随机盐。</p>
+
+    <label for="plainText">待加密文本</label>
+    <textarea id="plainText" autocomplete="off" spellcheck="false" placeholder="输入要加密的文本"></textarea>
+
+    <div class="actions">
+      <button id="encodeButton" type="button">确认加密</button>
+      <span id="status" class="status" role="status"></span>
+    </div>
+
+    <label for="encodedText">加密后的文本</label>
+    <output id="encodedText" for="plainText"></output>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      var DEFAULT_ROUNDS = 10;
+      var input = document.getElementById("plainText");
+      var button = document.getElementById("encodeButton");
+      var status = document.getElementById("status");
+      var output = document.getElementById("encodedText");
+
+      function setStatus(message, isError) {
+        status.textContent = message || "";
+        status.classList.toggle("error", Boolean(isError));
+      }
+
+      function encodePassword(password) {
+        var salt = dcodeIO.bcrypt.genSaltSync(DEFAULT_ROUNDS);
+        return dcodeIO.bcrypt.hashSync(password, salt);
+      }
+
+      button.addEventListener("click", function () {
+        if (!window.dcodeIO || !window.dcodeIO.bcrypt) {
+          setStatus("BCrypt JS 加载失败，请检查 CDN 是否可访问。", true);
+          return;
+        }
+
+        button.disabled = true;
+        setStatus("正在加密...");
+        output.textContent = "";
+
+        setTimeout(function () {
+          try {
+            output.textContent = encodePassword(input.value);
+            setStatus("完成。");
+          } catch (error) {
+            setStatus("加密失败：" + error.message, true);
+          } finally {
+            button.disabled = false;
+          }
+        }, 0);
+      });
+    })();
+  </script>
+</body>
+</html>
